@@ -1,0 +1,73 @@
+name: test-qt
+version: "1"
+summary: qt test
+description: a qt test
+confinement: strict
+base: core18
+grade: stable
+
+apps:
+  qml:
+    command: usr/bin/qmlscene app.qml
+  go:
+    command: bin/go.sh
+        #environment:
+        #LD_LIBRARY_PATH: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/:$SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/dri:$SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/mesa:$SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/mesa-gl:$SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/xorg:$SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/pulseaudio/
+        #LIBGL_DRIVERS_PATH: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/dri 
+      #adapter: full
+      #plugs:
+      #- opengl
+       #- network
+       #- network-bind
+       #- network-control
+       # - x11
+       # - wayland
+       #
+
+environment:
+  # Qt Platform to Wayland
+  #QT_QPA_PLATFORM: wayland
+  QTCHOOSER_NO_GLOBAL_DIR: 1
+  QT_SELECT: snappy-qt5
+
+layout:
+  /etc/xdg:
+    bind: $SNAP/etc/xdg
+  /usr/lib/${SNAPCRAFT_ARCH_TRIPLET}/qt5:
+    bind: $SNAP/usr/lib/${SNAPCRAFT_ARCH_TRIPLET}/qt5
+  /usr/lib/${SNAPCRAFT_ARCH_TRIPLET}/dri:
+    bind: $SNAP/usr/lib/${SNAPCRAFT_ARCH_TRIPLET}/dri
+
+parts:
+  config:
+    source: config
+    plugin: dump
+    organize:
+      snappy-qt5.conf: etc/xdg/qtchooser/snappy-qt5.conf
+  go:
+    source: go/
+    plugin: dump
+  qt:
+    plugin: nil
+    source: qt 
+    stage-packages: [ qt5-default, qtbase5-dev ]
+  qml:
+    source: qml
+    plugin: dump
+    #build-snaps:
+    #  - kde-frameworks-5-core18-sdk
+    #  - kde-frameworks-5-core18
+    #build:
+    #plugin: nil
+    #build-packages:
+    #  - build-essential
+    #  - cmake
+    #  - g++
+    #  - pkg-config
+        #- libgles2-mesa-dev
+        #stage-packages:
+        #- libdri2-1
+        #- libdrm2
+        #- libgles2-mesa
+      # libgl1-mesa-glx
+      #- libpulse0
