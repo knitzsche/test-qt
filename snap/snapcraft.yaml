@@ -8,7 +8,11 @@ grade: stable
 
 apps:
   qml:
-    command: usr/bin/qmlscene app.qml
+    command: launch.sh app.qml
+    plugs:
+       - opengl
+       - wayland
+       - network
   go:
     command: bin/go.sh
         #environment:
@@ -39,18 +43,35 @@ layout:
     bind: $SNAP/usr/lib/${SNAPCRAFT_ARCH_TRIPLET}/dri
 
 parts:
+  mir-kiosk-snap-launch:
+    plugin: dump
+    source: https://github.com/MirServer/mir-kiosk-snap-launch.git
+    override-build:  $SNAPCRAFT_PART_BUILD/build-with-plugs.sh opengl wayland
+
+  qtwayland:
+    plugin: nil
+    stage-packages:
+      - qtwayland5
   config:
     source: config
     plugin: dump
     organize:
       snappy-qt5.conf: etc/xdg/qtchooser/snappy-qt5.conf
-  go:
-    source: go/
+  launchers:
+    source: launchers
     plugin: dump
   qt:
     plugin: nil
     source: qt 
     stage-packages: [ qt5-default, qtbase5-dev ]
+  other:
+    plugin: nil
+    stage-packages:
+      - libdri2-1
+      - libdrm2
+      - libgles2-mesa
+      - libgl1-mesa-glx
+      - libpulse0
   qml:
     source: qml
     plugin: dump
