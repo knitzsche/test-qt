@@ -6,89 +6,93 @@ confinement: strict
 base: core18
 grade: stable
 
+plugs:
+  network:
+  opengl:
+  wayland:
+
 apps:
-  qml:
-    command: launch.sh app.qml
-    plugs:
-       - opengl
-       - wayland
-       - network
-  go:
-    command: bin/go.sh
-        #environment:
-        #LD_LIBRARY_PATH: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/:$SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/dri:$SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/mesa:$SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/mesa-gl:$SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/xorg:$SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/pulseaudio/
-        #LIBGL_DRIVERS_PATH: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/dri 
-      #adapter: full
-      #plugs:
-      #- opengl
-       #- network
-       #- network-bind
-       #- network-control
-       # - x11
-       # - wayland
-       #
+  daemon:
+    command: daemon.sh
+    daemon: simple
+    #restart-condition: always
+  glmark2:
+    command: wayland-launch $SNAP/usr/bin/glmark2-wayland --fullscreen
+  shell:
+    command: /bin/ls $SNAP
 
 environment:
   # Qt Platform to Wayland
-  #QT_QPA_PLATFORM: wayland
+  QT_QPA_PLATFORM: wayland
   QTCHOOSER_NO_GLOBAL_DIR: 1
   QT_SELECT: snappy-qt5
 
 layout:
+  /etc/glvnd:
+    bind: $SNAP/etc/glvnd
+  /etc/fonts:
+    bind: $SNAP/etc/fonts
   /etc/xdg:
     bind: $SNAP/etc/xdg
+  /usr/share/X11/xkb:
+    bind: $SNAP/usr/share/X11/xkb
+  /usr/share/fonts:
+    bind: $SNAP/usr/share/fonts
+  /usr/local/share/fonts:
+    bind: $SNAP/usr/local/share/fonts
+  /usr/share/glvnd:
+    bind: $SNAP/usr/share/glvnd
   /usr/lib/${SNAPCRAFT_ARCH_TRIPLET}/qt5:
     bind: $SNAP/usr/lib/${SNAPCRAFT_ARCH_TRIPLET}/qt5
   /usr/lib/${SNAPCRAFT_ARCH_TRIPLET}/dri:
     bind: $SNAP/usr/lib/${SNAPCRAFT_ARCH_TRIPLET}/dri
+  /usr/share/glmark2:
+    bind: $SNAP/usr/share/glmark2
 
 parts:
-  mir-kiosk-snap-launch:
+
+  glmark2-wayland:
+    plugin: nil
+    stage-packages:
+      - glmark2-wayland
+
+  app:
     plugin: dump
-    source: https://github.com/MirServer/mir-kiosk-snap-launch.git
-    override-build:  $SNAPCRAFT_PART_BUILD/build-with-plugs.sh opengl wayland
+    source: app
 
   qtwayland:
     plugin: nil
     stage-packages:
       - qtwayland5
-  config:
+
+  qt:
+    plugin: dump
+    source: qt
+    stage-packages: 
+      - qmlscene
+      - qml-module-qtquick-window2 #qtdeclarative5-examples is missing this dep, which is used by various examples
+      - qml-module-qt-labs-folderlistmodel #Another missing dep, needed by photosurface
+      - qml-module-qtquick-controls #Missing dep, needed by photoviewer
+      - libglu1-mesa
+    organize:
+      usr/lib/qt5/bin/qmlscene: bin/qmlscene
+    prime:
+     - bin/qmlscene
+     - usr/lib/$SNAPCRAFT_ARCH_TRIPLET/*Qt*so*
+     - usr/lib/$SNAPCRAFT_ARCH_TRIPLET/qt5
+
+  qt-config:
     source: config
     plugin: dump
     organize:
       snappy-qt5.conf: etc/xdg/qtchooser/snappy-qt5.conf
+
+  mir-kiosk-snap-launch:
+    plugin: dump
+    source: https://github.com/MirServer/mir-kiosk-snap-launch.git
+    override-build:  $SNAPCRAFT_PART_BUILD/build-with-plugs.sh opengl wayland
+
   launchers:
     source: launchers
     plugin: dump
-  qt:
-    plugin: nil
-    source: qt 
-    stage-packages: [ qt5-default, qtbase5-dev ]
-  other:
-    plugin: nil
-    stage-packages:
-      - libdri2-1
-      - libdrm2
-      - libgles2-mesa
-      - libgl1-mesa-glx
-      - libpulse0
-  qml:
-    source: qml
-    plugin: dump
-    #build-snaps:
-    #  - kde-frameworks-5-core18-sdk
-    #  - kde-frameworks-5-core18
-    #build:
-    #plugin: nil
-    #build-packages:
-    #  - build-essential
-    #  - cmake
-    #  - g++
-    #  - pkg-config
-        #- libgles2-mesa-dev
-        #stage-packages:
-        #- libdri2-1
-        #- libdrm2
-        #- libgles2-mesa
-      # libgl1-mesa-glx
-      #- libpulse0
+

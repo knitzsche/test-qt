@@ -48,9 +48,8 @@ export QML2_IMPORT_PATH=$QTDIR/qml/
 export QT_LOGGING_RULES=qt.qpa.*=true
 export QT_DEBUG_PLUGINS=1
 
-export OXIDE_NO_SANDBOX=1
-export QT_QPA_PLATFORM=eglfs
-export QT_QPA_EGLFS_INTEGRATION=eglfs_kms
+export QT_QPA_PLATFORM=wayland
+#export QT_QPA_EGLFS_INTEGRATION=eglfs_kms
 export QML_IMPORT_TRACE=1
 
 wayland-launch $SNAP/usr/bin/qmlscene app.qml --fullscreen
